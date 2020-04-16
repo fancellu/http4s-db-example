@@ -9,7 +9,7 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.literal._
-import io.getquill.{H2JdbcContext, SnakeCase}
+import io.getquill.{H2JdbcContext, SnakeCase, UpperCase}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
@@ -17,6 +17,7 @@ import org.http4s.implicits._
 import org.http4s.server.blaze._
 import io.circe.generic.auto._
 import io.getquill.monad.Effect
+import org.http4s.server.ServiceErrorHandler
 
 object MyMain extends IOApp {
 
@@ -59,15 +60,24 @@ object MyMain extends IOApp {
     }
   }
 
+//  private def error(req:Request[IO]) :ServiceErrorHandler[IO]=  ServiceErrorHandler{
+//    //case th:Throwable=>
+//    //th.printStackTrace()
+//    IO(InternalServerError)
+//  }
+
   private val videotags = HttpRoutes.of[IO] {
     case GET -> Root / "videotag" => {
-      import ctx._
-      val q=quote{
-        query[VideoTag]
-      }
-
-      val out1=ctx.run(q)
-      Ok(out1.asJson)
+        import ctx._
+        val q=quote{
+          query[VideoTag]
+        }
+        val out1=ctx.run(q)
+        Ok(out1.asJson)
+    }.recoverWith{
+      case ex=>
+        ex.printStackTrace()
+        InternalServerError("yikes")
     }
   }
 
@@ -78,6 +88,7 @@ object MyMain extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
+  //  .withServiceErrorHandler(error)
       .withHttpApp(httpApp)
       .serve
       .compile

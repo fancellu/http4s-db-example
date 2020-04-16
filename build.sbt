@@ -20,3 +20,5 @@ libraryDependencies ++= Seq(
   "io.getquill" %% "quill-jdbc" % "3.5.1",
   "org.flywaydb" % "flyway-core" % "6.3.2"
 )
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)

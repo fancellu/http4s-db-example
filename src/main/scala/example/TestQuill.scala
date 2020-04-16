@@ -1,6 +1,6 @@
 package example
 
-import io.getquill.{H2JdbcContext, SnakeCase}
+import io.getquill.{H2JdbcContext,  UpperCase}
 import org.flywaydb.core.Flyway
 
 object TestQuill extends App{
@@ -13,7 +13,7 @@ object TestQuill extends App{
 //  config.setDataSource(pgDataSource)
 
 
-  lazy val ctx = new H2JdbcContext(SnakeCase, "ctx")
+  lazy val ctx = new H2JdbcContext(UpperCase, "ctx")
 
   import ctx._
 
