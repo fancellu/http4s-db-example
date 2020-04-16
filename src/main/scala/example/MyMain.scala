@@ -42,7 +42,7 @@ object MyMain extends IOApp {
 
   val xa: Transactor[IO]= Transactor.fromDataSource[IO](ctx.dataSource,ExecutionContext.global,blocker)
 
-  val dc = new DoobieContext.H2(Literal) // Literal naming scheme
+  val dc = new DoobieContext.H2(SnakeCase) // Literal naming scheme
 
   import dc._
 
@@ -61,22 +61,19 @@ object MyMain extends IOApp {
 
   private val videos = HttpRoutes.of[IO] {
     case GET -> Root / "video" => {
-      val ioVids=dc.run{
+      val vids=dc.run{
         query[Video]
       }.transact(xa)
-      Ok(ioVids.map(_.asJson))
-    }
+      Ok(vids.map(_.asJson))
+    }// .recoverWith{errorhandler} // made global
   }
 
   private val tags = HttpRoutes.of[IO] {
     case GET -> Root / "tag" => {
-      import ctx._
-      val q=quote{
+      val tags=dc.run{
         query[Tag]
-      }
-
-      val out1=ctx.run(q)
-      Ok(out1.asJson)
+      }.transact(xa)
+      Ok(tags.map(_.asJson))
     }
   }
 
@@ -86,18 +83,18 @@ object MyMain extends IOApp {
 //    IO(InternalServerError)
 //  }
 
+  val errorhandler: PartialFunction[Throwable, IO[Response[IO]]] ={
+    case th: Throwable=>
+      th.printStackTrace()
+      InternalServerError(s"InternalServerError: $th")
+  }
+
   private val videotags = HttpRoutes.of[IO] {
     case GET -> Root / "videotag" => {
-        import ctx._
-        val q=quote{
-          query[VideoTag]
-        }
-        val out1=ctx.run(q)
-        Ok(out1.asJson)
-    }.recoverWith{
-      case ex=>
-        ex.printStackTrace()
-        InternalServerError("yikes")
+      val tags=dc.run{
+        query[VideoTag]
+      }.transact(xa)
+      Ok(tags.map(_.asJson))
     }
   }
 
@@ -108,7 +105,7 @@ object MyMain extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-  //  .withServiceErrorHandler(error)
+    .withServiceErrorHandler(req=>errorhandler)
       .withHttpApp(httpApp)
       .serve
       .compile
