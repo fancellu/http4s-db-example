@@ -6,6 +6,8 @@ scalaVersion := "2.13.1"
 
 val http4sVersion = "0.21.2"
 
+val doobieVersion= "0.8.8"
+
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
@@ -18,7 +20,8 @@ libraryDependencies ++= Seq(
 libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.200",
   "io.getquill" %% "quill-jdbc" % "3.5.1",
+  "org.tpolecat" %% "doobie-core"  % doobieVersion,
+  "org.tpolecat" %% "doobie-quill" % doobieVersion,
   "org.flywaydb" % "flyway-core" % "6.3.2"
 )
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
