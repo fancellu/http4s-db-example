@@ -3,7 +3,6 @@ package example
 import java.io.Closeable
 import java.util.concurrent.Executors
 
-import MyMain.{Greeting, ctx}
 import cats.effect._
 import cats.implicits._
 import doobie.quill.DoobieContext
@@ -32,8 +31,7 @@ import cats.effect.IO
 
 object MyMain extends IOApp {
 
-
-  val ctx = new H2JdbcContext(SnakeCase, "ctx")
+  val ctx = new H2JdbcContext(UpperCase, "ctx")
 
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
@@ -42,22 +40,15 @@ object MyMain extends IOApp {
 
   val xa: Transactor[IO]= Transactor.fromDataSource[IO](ctx.dataSource,ExecutionContext.global,blocker)
 
-  val dc = new DoobieContext.H2(SnakeCase) // Literal naming scheme
+  val dc = new DoobieContext.H2(UpperCase) // Literal naming scheme
 
   import dc._
 
-  case class Greeting(message: String)
+  implicit val videoInsertMeta = insertMeta[Video](_.id)
+  implicit val tagInsertMeta = insertMeta[Tag](_.id)
+  implicit val videotagInsertMeta = insertMeta[VideoTag](_.id)
 
-  private val helloWorldService = HttpRoutes.of[IO] {
-    case GET -> Root / "hello" / name => Ok(s"Hello, $name.")
-  }
-
-  private val greetService = HttpRoutes.of[IO] {
-    case GET -> Root / "greet"  => Ok(Greeting("hello there").asJson)
-  }
-
-  //case class Video(id: Int, name: String)
-
+  object TagsParamMatcher extends QueryParamDecoderMatcher[String]("tags")
 
   private val videos = HttpRoutes.of[IO] {
     case GET -> Root / "video" => {
@@ -66,6 +57,39 @@ object MyMain extends IOApp {
       }.transact(xa)
       Ok(vids.map(_.asJson))
     }// .recoverWith{errorhandler} // made global
+    case GET -> Root / "video" / IntVar(id)=> {
+      val vids=dc.run{
+        query[Video].filter(_.id==lift(id))
+      }.transact(xa)
+      Ok(vids.map(_.asJson))
+    }
+    case GET -> Root / "video" / "tags" / IntVar(id)=> {
+      val tags=dc.run{
+        query[VideoTag].join(query[Tag]).on(_.tagId == _.id).filter(_._1.videoId == lift(id)).map(_._2)
+      }.transact(xa)
+      Ok(tags.map(_.asJson))
+    }
+    case POST -> Root / "video" / "tags" / IntVar(id) :? TagsParamMatcher(tags) => {
+
+      val tagids=tags.split(",").map(Integer.parseInt).toList
+      val videotags =tagids.map(i=>VideoTag(0,id,i))
+
+      val transaction= for {
+        _ <- dc.run(query[VideoTag].filter(_.videoId == lift(id)).delete)
+        _ <- dc.run(liftQuery(videotags).foreach { vt =>
+          query[VideoTag].insert(vt)
+        })
+      } yield ()
+
+      val ids=transaction.transact(xa)
+      Ok(ids.map(_.asJson))
+    }
+    case POST -> Root / "video" / name => {
+      val id=dc.run {
+        query[Video].insert(lift(Video(0,name))).returningGenerated(_.id)
+      }.transact(xa)
+      Ok(id.map(_.asJson))
+    }
   }
 
   private val tags = HttpRoutes.of[IO] {
@@ -75,13 +99,19 @@ object MyMain extends IOApp {
       }.transact(xa)
       Ok(tags.map(_.asJson))
     }
+    case GET -> Root / "tag" / IntVar(id)=> {
+      val tags=dc.run{
+        query[Tag].filter(_.id==lift(id))
+      }.transact(xa)
+      Ok(tags.map(_.asJson))
+    }
+    case POST -> Root / "tag" / name => {
+      val id=dc.run {
+        query[Tag].insert(lift(Tag(0,name))).returningGenerated(_.id)
+      }.transact(xa)
+      Ok(id.map(_.asJson))
+    }
   }
-
-//  private def error(req:Request[IO]) :ServiceErrorHandler[IO]=  ServiceErrorHandler{
-//    //case th:Throwable=>
-//    //th.printStackTrace()
-//    IO(InternalServerError)
-//  }
 
   val errorhandler: PartialFunction[Throwable, IO[Response[IO]]] ={
     case th: Throwable=>
@@ -96,11 +126,21 @@ object MyMain extends IOApp {
       }.transact(xa)
       Ok(tags.map(_.asJson))
     }
+    case GET -> Root / "videotag" / IntVar(id)=> {
+      val videotags=dc.run{
+        query[VideoTag].filter(_.id==lift(id))
+      }.transact(xa)
+      Ok(videotags.map(_.asJson))
+    }
+    case POST -> Root / "videotag" / IntVar(videoId) / IntVar(tagId) => {
+      val id=dc.run {
+        query[VideoTag].insert(lift(VideoTag(0,videoId, tagId))).returningGenerated(_.id)
+      }.transact(xa)
+      Ok(id.map(_.asJson))
+    }
   }
 
-
-  private val httpApp=(helloWorldService <+> greetService
-    <+> videos <+> tags <+> videotags).orNotFound
+  private val httpApp=(videos <+> tags <+> videotags).orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
@@ -112,10 +152,6 @@ object MyMain extends IOApp {
       .drain
       .as(ExitCode.Success)
 
-  // add doobie/quill endpoints
-  // H2 or postgres?
-  // unit test
-  // flywaydb
   // https://typelevel.org/blog/2018/08/25/http4s-error-handling-mtl.html#http-error-handling
 
 }
