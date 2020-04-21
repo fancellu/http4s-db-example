@@ -12,19 +12,19 @@ GET /video
 
 Show all videos
 
-GET /video/<id>
+GET /video/[id]
 
 Show certain video
 
-GET /video/tags/<id>
+GET /video/tags/[id]
 
 Show tags for certain video
 
-POST /video/tags/<id>?tags=1,2,3
+POST /video/tags/[id]?tags=1,2,3
 
 Set tags for certain video
 
-POST /video/<name>
+POST /video/[name]
 
 Create a new video
 
@@ -34,11 +34,11 @@ GET /tag
 
 Show all tags
 
-GET /tag/<id>
+GET /tag/[id]
 
 Show certain tag
 
-POST /tag/<name>
+POST /tag/[name]
 
 Create a new tag
 
@@ -48,10 +48,10 @@ GET /videotag
 
 Show all videotags
 
-GET /videotag/<id>
+GET /videotag/[id]
 
 Show certain videotag
 
-POST /tag/<videoid>/<tagid>
+POST /videotag/[videoid]/[tagid]
 
-Create a new videotag (may well be easier to use the batch POST /video/tags/<id>?tags=1,2,3 call)
+Create a new videotag (may well be easier to use the batch POST /video/tags/[id]?tags=1,2,3 call)
