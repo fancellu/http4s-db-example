@@ -1,6 +1,6 @@
 # http4s-db-example
 
-http4s + H2 + Doobie + Quill + flywaydb + Cats
+http4s + H2 + Doobie + Quill + flywaydb + Cats Effect
 
 ## DB
 
