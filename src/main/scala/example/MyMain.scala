@@ -1,29 +1,25 @@
 package example
 
 import java.util.concurrent.Executors
-
 import cats.effect._
 import cats.implicits._
 import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
-
 import io.circe._
 import io.circe.syntax._
 import io.circe.literal._
 import io.circe.generic.auto._
-
 import io.getquill.{H2JdbcContext, Literal, SnakeCase, UpperCase}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext
-
 import org.flywaydb.core.Flyway
+import org.http4s.blaze.server.BlazeServerBuilder
 
 case class Video(id: Int, name: String)
 
@@ -39,12 +35,9 @@ object MyMain extends IOApp {
 
   println(flyway.migrate())
 
-  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-
   private val blockingPool = Executors.newFixedThreadPool(4)
-  private val blocker = Blocker.liftExecutorService(blockingPool)
 
-  val xa: Transactor[IO]= Transactor.fromDataSource[IO](ctx.dataSource,ExecutionContext.global,blocker)
+  val xa: Transactor[IO]= Transactor.fromDataSource[IO](ctx.dataSource,ExecutionContext.global)
 
   val dc = new DoobieContext.H2(UpperCase) // Literal naming scheme
 
