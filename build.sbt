@@ -2,9 +2,9 @@ name := "http4s-db-example"
 
 version := "0.2"
 
-scalaVersion := "2.13.6"
+scalaVersion := "2.13.8"
 
-val http4sVersion = "0.23.3"
+val http4sVersion = "0.23.11"
 
 val doobieVersion= "1.0.0-RC1"
 
@@ -21,6 +21,6 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.200",
   "org.tpolecat" %% "doobie-core"  % doobieVersion,
   "org.tpolecat" %% "doobie-quill" % doobieVersion,
-  "org.flywaydb" % "flyway-core" % "6.3.2"
+  "org.flywaydb" % "flyway-core" % "8.5.9"
 )
 

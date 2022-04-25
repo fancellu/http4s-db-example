@@ -2,6 +2,12 @@
 
 http4s + H2 + Doobie + Quill + flywaydb + Cats Effect
 
+## To run
+
+Either run `MyMain` or `sbt run`
+
+It should be on localhost:8080
+
 ## DB
 
 3 tables: video, tags, and a videotag join table
