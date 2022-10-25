@@ -1,5 +1,7 @@
 package example
 
+import cats.data.Kleisli
+
 import java.util.concurrent.Executors
 import cats.effect._
 import cats.implicits._
@@ -20,6 +22,8 @@ import org.http4s.implicits._
 import scala.concurrent.ExecutionContext
 import org.flywaydb.core.Flyway
 import org.http4s.blaze.server.BlazeServerBuilder
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 case class Video(id: Int, name: String)
 
@@ -28,6 +32,8 @@ case class Tag(id: Int, name: String)
 case class VideoTag(id: Int, videoId: Int, tagId: Int)
 
 object MyMain extends IOApp {
+
+  implicit def logger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
   val ctx = new H2JdbcContext(UpperCase, "ctx")
 
@@ -51,12 +57,12 @@ object MyMain extends IOApp {
 
   private val videos = HttpRoutes.of[IO] {
     case GET -> Root / "video" =>
-      val vids=dc.run{
+      val vids=Logger[IO].info("/video endpoint") *> dc.run{
         query[Video]
       }.transact(xa)
-      Ok(vids.map(_.asJson)) // .recoverWith{errorhandler} // made global
+      Ok(vids.map(_.asJson))
     case GET -> Root / "video" / IntVar(id)=>
-      val vids=dc.run{
+      val vids=Logger[IO].info("/video/id endpoint") *> dc.run{
         query[Video].filter(_.id==lift(id))
       }.transact(xa)
       Ok(vids.map(_.asJson))
@@ -107,7 +113,7 @@ object MyMain extends IOApp {
   val errorhandler: PartialFunction[Throwable, IO[Response[IO]]] ={
     case th: Throwable=>
       th.printStackTrace()
-      InternalServerError(s"InternalServerError: $th")
+      Logger[IO].error(s"InternalServerError: $th") *> InternalServerError(s"InternalServerError: $th")
   }
 
   private val videotags = HttpRoutes.of[IO] {

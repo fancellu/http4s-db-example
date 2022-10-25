@@ -14,50 +14,50 @@ It should be on localhost:8080
 
 ## Video Endpoints
 
-GET /video
+GET http://localhost:8080/video
 
 Show all videos
 
-GET /video/[id]
+GET http://localhost:8080/video/1
 
 Show certain video
 
-GET /video/tags/[id]
+GET http://localhost:8080/video/tags/1
 
 Show tags for certain video
 
-POST /video/tags/[id]?tags=1,2,3
+POST http://localhost:8080/video/tags/[id]?tags=1,2,3
 
 Set tags for certain video
 
-POST /video/[name]
+POST http://localhost:8080/video/[name]
 
 Create a new video
 
 ## Tag Endpoints
 
-GET /tag
+GET http://localhost:8080/tag
 
 Show all tags
 
-GET /tag/[id]
+GET http://localhost:8080/tag/1
 
 Show certain tag
 
-POST /tag/[name]
+POST http://localhost:8080/tag/[name]
 
 Create a new tag
 
 ## VideoTag Endpoints
 
-GET /videotag
+GET http://localhost:8080/videotag
 
 Show all videotags
 
-GET /videotag/[id]
+GET http://localhost:8080/videotag/1
 
 Show certain videotag
 
-POST /videotag/[videoid]/[tagid]
+POST http://localhost:8080/videotag/[videoid]/[tagid]
 
 Create a new videotag (may well be easier to use the batch POST /video/tags/[id]?tags=1,2,3 call)
