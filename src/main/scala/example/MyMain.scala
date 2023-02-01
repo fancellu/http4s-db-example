@@ -5,7 +5,7 @@ import cats.data.Kleisli
 import java.util.concurrent.Executors
 import cats.effect._
 import cats.implicits._
-import doobie.quill.DoobieContext
+// import doobie.quill.DoobieContext
 import doobie.util.transactor.Transactor
 import doobie._
 import doobie.implicits._
@@ -24,6 +24,9 @@ import org.flywaydb.core.Flyway
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+
+import io.getquill.{ idiom => _, _ }
+import io.getquill.doobie.DoobieContext
 
 case class Video(id: Int, name: String)
 
@@ -47,7 +50,10 @@ object MyMain extends IOApp {
 
   val dc = new DoobieContext.H2(UpperCase) // Literal naming scheme
 
-  import dc._
+  import dc.{SqlInfixInterpolator => _, _} // Quill's `sql` interpolator conflicts with doobie so don't import it
+  import dc.compat._
+
+//  import dc._
 
   private implicit val videoInsertMeta = insertMeta[Video](_.id)
   private implicit val tagInsertMeta = insertMeta[Tag](_.id)

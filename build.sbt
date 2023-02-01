@@ -6,7 +6,7 @@ scalaVersion := "2.13.10"
 
 val http4sVersion = "0.23.16"
 
-val doobieVersion= "1.0.0-RC1"
+val doobieVersion= "1.0.0-RC2"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.4.200",
   "org.tpolecat" %% "doobie-core"  % doobieVersion,
-  "org.tpolecat" %% "doobie-quill" % doobieVersion,
+  "io.getquill" %% "quill-doobie" % "4.6.0",
   "org.flywaydb" % "flyway-core" % "8.5.9"
 )
 
